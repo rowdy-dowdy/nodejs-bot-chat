@@ -3,6 +3,7 @@ dotenv.config()
 
 const config = {
   verifyToken: process.env.VERIFY_TOKEN,
+  accessToken: process.env.ACCESS_TOKEN,
   port: process.env.PORT || 3000,
   hostName: process.env.HOSTNAME || `http://localhost:${process.env.PORT || 3000}`
 }
