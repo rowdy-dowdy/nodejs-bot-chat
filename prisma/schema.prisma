@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id       String @id @default(cuid())
+  email    String @unique
+  password String
+  name     String
+
+  // imageId String?
+  // image   File?   @relation("avatar", fields: [imageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  // files File[] @relation("files")
+
+  // folders FolderFile[] @relation("folders")
+
+  // roleId String
+  // role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  // histories AdminHistory[]
+
+  publish   String   @default("publish") // or draft
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id          String  @id @default(cuid())
+  psid        String  @unique
+  isGuest     Boolean @default(false)
+  firstName   String?
+  lastName    String?
+  gender      String?
+  locale      String?
+  timezone    Int?
+  profile_pic String?
+
+  categorySpending CategorySpending?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CategorySpending {
+  id   String @id @default(cuid())
+  name String
+  list String?
+
+  spendings      Spending[]
+  limitedAmounts LimitedAmount[]
+
+  userId String @unique
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CategorySample {
+  id   String @id @default(cuid())
+  name String
+  list String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Spending {
+  id    String   @id @default(cuid())
+  name  String
+  price Int
+  date  DateTime @default(now())
+
+  categoryId String
+  category   CategorySpending @relation(fields: [categoryId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LimitedAmount {
+  id      String   @id @default(cuid())
+  min     Int?
+  max     Int?
+  average Int?
+  month   DateTime @default(now())
+
+  categoryId String
+  category   CategorySpending @relation(fields: [categoryId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
