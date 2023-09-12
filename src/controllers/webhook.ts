@@ -137,7 +137,7 @@ export const getWebhookMessage = async (req: Request, res: Response) => {
 
 export const postSetupProfile = async (req: Request, res: Response) => {
   await callMessengerProfileAPI({
-    get_started: { "payload": "Thiết lập ngay" },
+    get_started: { payload: "GET_STARTED" },
     greeting: [
       {
         locale: 'default',

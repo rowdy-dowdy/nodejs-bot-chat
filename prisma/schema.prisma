@@ -52,7 +52,7 @@ model User {
 
 model CategorySpending {
   id   String @id @default(cuid())
-  name String
+  name String @unique
   list String?
 
   spendings      Spending[]
@@ -67,7 +67,7 @@ model CategorySpending {
 
 model CategorySample {
   id   String @id @default(cuid())
-  name String
+  name String @unique
   list String?
 
   createdAt DateTime @default(now())

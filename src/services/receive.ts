@@ -1,7 +1,8 @@
 import { User } from "@prisma/client";
-import { PostbackState, ReceivedWebHookState } from "../../types/webHookTypes";
+import { PayloadState, PostbackState, ReceivedWebHookState } from "../../types/webHookTypes";
 import { callSendApi } from "./api";
 import db from "../config/db";
+import { findOrCreateCategorySpending } from "../controllers/database";
 
 export const handleMessage = async (
   user: User | null, 
@@ -118,48 +119,74 @@ const handleAttachmentMessage = async () => {}
 const handleTextMessage = async () => {}
 
 const handlePostback = async (user: User, postback: PostbackState) => {
-  if (postback.title == "Get Started") {
-    const sampleCategories = await db.categorySample.findMany()
-    const spendingCategories = await Promise.all(sampleCategories.map(v =>
-      db.categorySpending.create({
-        data: {
-          userId: user.id,
-          name: v.name,
-        }
-      })  
-    ))
+  if (postback.payload == "GET_STARTED") {
+    await findOrCreateCategorySpending(user.id)
 
-    return {
-      attachment:{
-        type: "template",
-        payload:{
-          template_type: "generic",
-          elements:[
+    return createTemplateResponse({
+      template_type: "generic",
+      elements: [
+        {
+          title: `Piggy Save xin chào ${user.firstName} ${user.lastName}!`,
+          image_url: "https://khoinguonsangtao.vn/wp-content/uploads/2022/10/hinh-anh-lang-que-viet-nam.jpg",
+          subtitle: "Dưới đây là các tùy chọn chính",
+          buttons: [
             {
-              title: `Piggy Save xin chào ${user.firstName} ${user.lastName}!`,
-              image_url: "https://khoinguonsangtao.vn/wp-content/uploads/2022/10/hinh-anh-lang-que-viet-nam.jpg",
-              subtitle: "Dưới đây là các tùy chọn chính",
-              buttons:[
-                {
-                  type: "postback",
-                  title: "Xem chi tiêu",
-                  payload: "PAYLOAD_MENU_SPENDING"
-                },
-                {
-                  type: "postback",
-                  title: "Cập nhập thông tin",
-                  payload: "PAYLOAD_MENU_UPDATE"
-                },
-                {
-                  type: "web_url",
-                  url: "https://english.viethung.fun",
-                  title: "Hướng dẫn sử dụng"
-                },          
-              ]      
-            }
-          ]
+              type: "postback",
+              title: "Xem chi tiêu",
+              payload: "PAYLOAD_MENU_SPENDING"
+            },
+            {
+              type: "postback",
+              title: "Cập nhập thông tin",
+              payload: "PAYLOAD_MENU_UPDATE"
+            },
+            {
+              type: "postback",
+              title: "Hướng dẫn sử dụng",
+              payload: "PAYLOAD_GUIDE"
+            },
+          ]        
         }
-      }
+      ]    
+    })
+  }
+  else if (postback.payload == "PAYLOAD_MENU_SPENDING") {
+    return createTemplateResponse({
+      template_type: "generic",
+      elements: [
+        {
+          title: `Piggy Save xin chào ${user.firstName} ${user.lastName}!`,
+          image_url: "https://img.freepik.com/free-vector/investor-with-laptop-monitoring-growth-dividends-trader-sitting-stack-money-investing-capital-analyzing-profit-graphs-vector-illustration-finance-stock-trading-investment_74855-8432.jpg?w=1380&t=st=1694485866~exp=1694486466~hmac=a31faacfa583188ffcacd457e161821ef8702fbcfc1722c847941c92ec831373",
+          subtitle: "Xem lịch sử chi tiêu",
+          buttons: [
+            {
+              type: "postback",
+              title: "Chi tiêu trong ngày",
+              payload: "PAYLOAD_MENU_SPENDING"
+            },
+            {
+              type: "postback",
+              title: "Chi tiêu trong tháng",
+              payload: "PAYLOAD_MENU_UPDATE"
+            },
+          ]        
+        }
+      ]
+    })
+  }
+  else if (postback.payload == "PAYLOAD_GUIDE") {
+    return {
+      text: `
+        ❤️ CÔNG TY CỔ PHẦN CÔNG NGHỆ VÀ TRUYỀN THÔNG SỐ Piggy Save tự hào là đơn vị hợp tác với Việt Hùng Ít, thiết kế bộ sản phẩm truyền thông tổ chức cho Festival Cao nguyên trắng Bắc Hà 2023 với chủ đề "Sắc thu cao nguyên"
+        🌾 Hiện tại, chuỗi sự kiện vẫn đang tiếp tục diễn ra đến tháng 10. Các bạn hãy nhân dịp này đến với Bắc Hà để tham quan, trải nghiệm, tìm hiểu về cảnh sắc, văn hóa, ẩm thực và người dân thân thiện nơi đây nhé!
+        📣 Chi tiết và thời gian cụ thể các sự kiện ở ảnh cuối
+        -------------------------------
+        Việt Hùng ít
+        ☎️ Hotline: 0933.933.237 
+        📩 Email: viet.hung.2898@gmail.com
+        🌐 Website: https://english.viethung.fun/
+        🏢 Địa chỉ: số 304 - Tổ 2 - Phường Tân Thịnh - TP.Thái Nguyên
+      `
     }
   }
 }
@@ -168,3 +195,31 @@ const handleReferral = async () => {}
 const handleOptIn = async () => {}
 
 const handlePassThreadControlHandover = async () => {}
+
+const createPayload = (text: PayloadState) => text
+
+const createTemplateResponse = (data: {
+  template_type: 'generic', 
+  elements: {
+    title: string, image_url: string, subtitle?: string,
+    buttons: ({
+      type: "postback",
+      title: string,
+      payload: PayloadState
+    } | {
+      type: "web_url",
+      url: string,
+      title: string
+    })[]
+  }[]
+}) => {
+  return {
+    attachment:{
+      type: "template",
+      payload: {
+        template_type: data.template_type,
+        elements: data.elements
+      }
+    }
+  }
+}

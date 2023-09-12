@@ -48,3 +48,23 @@ export const findOrCreateUser = async (psid: string) => {
 
   return upsertUser
 }
+
+export const findOrCreateCategorySpending = async (id: string) => {
+  const sampleCategories = await db.categorySample.findMany()
+
+  const spendingCategories = await Promise.all(sampleCategories.map(v =>
+    db.categorySpending.upsert({
+      where: {
+        userId: id,
+        name: v.name
+      },
+      update: {},
+      create: {
+        userId: id,
+        name: v.name,
+      }
+    })  
+  ))
+
+  return spendingCategories
+}

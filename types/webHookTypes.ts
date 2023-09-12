@@ -1,6 +1,9 @@
+export type PayloadState = "GET_STARTED" | "PAYLOAD_MENU_SPENDING" | "PAYLOAD_GUIDE"
+  | "PAYLOAD_MENU_UPDATE" | "PAYLOAD_SPENDING_DATE" | "PAYLOAD_SPENDING_MONTH"
+
 export type PostbackState = {
   title: string,
-  payload: string,
+  payload: PayloadState,
   mid: string,
   referral: any
 }
